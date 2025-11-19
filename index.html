@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Study Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      background: #4a90e2;
+      padding: 15px;
+      color: white;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    #chatbox {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      background: #ffffff;
+      border-top: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .message {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 8px;
+      max-width: 80%;
+    }
+
+    .user {
+      background: #d1e7ff;
+      align-self: flex-end;
+      text-align: right;
+    }
+
+    .bot {
+      background: #e6e6e6;
+      align-self: flex-start;
+    }
+
+    #input-area {
+      display: flex;
+      padding: 10px;
+      background: #fafafa;
+    }
+
+    input {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      margin-left: 10px;
+      padding: 12px 20px;
+      font-size: 16px;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #3578c8;
+    }
+  </style>
+</head>
+<body>
+
+<header>📚 Study & Coding Chatbot</header>
+
+<div id="chatbox"></div>
+
+<div id="input-area">
+  <input id="userInput" placeholder="Ask anything about studies, coding, DSA, Python..." />
+  <button onclick="sendMessage()">Send</button>
+</div>
+
+<script>
+  let apiKey = "";
+
+  // Ask user for API key when page loads
+  window.onload = function () {
+    apiKey = prompt("Enter your Gemini API Key:");
+    if (!apiKey) {
+      alert("API key is required!");
+    }
+  };
+
+  async function sendMessage() {
+    const inputField = document.getElementById("userInput");
+    const userText = inputField.value.trim();
+
+    if (userText === "") return;
+
+    addMessage(userText, "user");
+    inputField.value = "";
+
+    try {
+      const response = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: userText }] }]
+          })
+        }
+      );
+
+      const data = await response.json();
+      const botReply =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        "⚠️ No response — check your API key.";
+
+      addMessage(botReply, "bot");
+
+    } catch (error) {
+      addMessage("⚠️ Error: " + error.message, "bot");
+    }
+  }
+
+  function addMessage(text, sender) {
+    const chatbox = document.getElementById("chatbox");
+
+    const msg = document.createElement("div");
+    msg.classList.add("message", sender);
+    msg.innerText = text;
+
+    chatbox.appendChild(msg);
+    chatbox.scrollTop = chatbox.scrollHeight; // Auto scroll
+  }
+</script>
+
+</body>
+</html>
